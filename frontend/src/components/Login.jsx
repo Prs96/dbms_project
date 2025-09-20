@@ -19,13 +19,16 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/logins`);
-      if (!res.ok) throw new Error("Server error");
-      const items = await res.json();
-      const match = (items || []).find(
-        (i) => i.Username === username && i.Password === password
-      );
-      if (!match) throw new Error("Invalid username or password");
+      const res = await fetch(`${API_BASE}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || "Invalid username or password");
+      }
+      await res.json();
       navigate("/");
     } catch (err) {
       setError(err.message || "Login failed");

@@ -49,25 +49,22 @@ export default function Signup() {
           "Password must be at least 8 characters and include uppercase, lowercase, and a number."
         );
       }
-      const uRes = await fetch(`${API_BASE}/users`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ Name: name, Email: email }),
-      });
-      if (!uRes.ok) throw new Error("Failed to create user");
-      const user = await uRes.json();
-      const loginRes = await fetch(`${API_BASE}/logins`, {
+      const resp = await fetch(`${API_BASE}/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          UserID: user.UserID,
-          Username: username,
-          Password: password,
-          Role: "Student",
+          name,
+          email,
+          username,
+          password,
+          role: "Student",
         }),
       });
-      if (!loginRes.ok) throw new Error("Failed to create login");
-      await loginRes.json();
+      if (!resp.ok) {
+        const data = await resp.json().catch(() => ({}));
+        throw new Error(data.message || "Failed to sign up");
+      }
+      await resp.json();
       navigate("/login");
     } catch (err) {
       setError(err.message || "Signup failed");
