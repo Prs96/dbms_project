@@ -1,32 +1,37 @@
 services:
-  s5:
+  postgres:
     image: postgres:15
-    container_name: s5
+    container_name: ${POSTGRES_CONTAINER_NAME:-postgres_db}
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: yourpassword
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-yourpassword}
       POSTGRES_DB: dbmsS5
     ports:
-      - "5433:5432"   # host:container
+      # For local development, expose on 5433 to avoid conflicts
+      # For production (Render), this port mapping is ignored
+      - "${POSTGRES_PORT:-5433}:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
+      interval: ${HEALTH_CHECK_INTERVAL:-10s}
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
   backend:
     build: .
-    container_name: dbms_backend
+    container_name: ${BACKEND_CONTAINER_NAME:-dbms_backend}
     ports:
-      - "3000:3000"
+      - "${PORT:-3000}:3000"
     environment:
-      - DATABASE_URL=postgres://postgres:yourpassword@s5:5432/dbmsS5
+      - DATABASE_URL=postgres://postgres:${POSTGRES_PASSWORD:-yourpassword}@postgres:5432/dbmsS5
+      - PORT=${PORT:-3000}
+      - NODE_ENV=${NODE_ENV:-development}
     depends_on:
-      s5:
+      postgres:
         condition: service_healthy
-    restart: on-failure
+    restart: unless-stopped
 
 volumes:
-  pgdata:
+  postgres_data:
