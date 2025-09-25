@@ -28,8 +28,12 @@ export default function Login() {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.message || "Invalid username or password");
       }
-      await res.json();
-      navigate("/");
+      const data = await res.json();
+      localStorage.setItem(
+        "auth",
+        JSON.stringify({ userId: data.userId, role: data.role })
+      );
+      navigate("/profile");
     } catch (err) {
       setError(err.message || "Login failed");
     } finally {
