@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext";
+import { signup as signupRequest } from "../api/auth";
 
 const API_BASE =
   import.meta.env.VITE_BACKEND_URL ||
@@ -49,22 +50,7 @@ export default function Signup() {
           "Password must be at least 8 characters and include uppercase, lowercase, and a number."
         );
       }
-      const resp = await fetch(`${API_BASE}/auth/signup`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          email,
-          username,
-          password,
-          role: "Student",
-        }),
-      });
-      if (!resp.ok) {
-        const data = await resp.json().catch(() => ({}));
-        throw new Error(data.message || "Failed to sign up");
-      }
-      await resp.json();
+      await signupRequest({ name, email, username, password, role: "Student" });
       navigate("/login");
     } catch (err) {
       setError(err.message || "Signup failed");
