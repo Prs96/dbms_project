@@ -5,6 +5,10 @@
   text-align: center;
 }
 
+.topbar{
+  margin-top: 12px;
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;

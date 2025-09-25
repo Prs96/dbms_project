@@ -102,6 +102,7 @@ button:focus-visible {
   margin: 12px 0 8px;
   font-size: 24px;
   font-weight: 800;
+  color: var(--primary);
 }
 .auth-form {
   display: grid;
@@ -224,12 +225,15 @@ button:focus-visible {
   font-size: 14px;
 }
 .topbar {
-  position: sticky;
+  position: absolute;
   top: 0;
+  left: 0;
+  right: 0;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 16px;
+  padding: 10px 40px;
+  z-index: 10;
 }
 .brand {
   font-weight: 700;
