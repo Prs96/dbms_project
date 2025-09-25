@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { login as loginRequest } from "../api/auth";
 
 const API_BASE =
   import.meta.env.VITE_BACKEND_URL ||
@@ -19,16 +20,7 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || "Invalid username or password");
-      }
-      const data = await res.json();
+      const data = await loginRequest({ username, password });
       localStorage.setItem(
         "auth",
         JSON.stringify({ userId: data.userId, role: data.role })
