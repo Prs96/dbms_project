@@ -1,6 +1,9 @@
 // Centralized API helper
+// In production (Docker), use relative path so Nginx can proxy to backend
+// In development, use localhost:3000
 const BASE =
-  import.meta.env.VITE_BACKEND_URL || import.meta.env.BACKEND_URL || "http://localhost:3000";
+  import.meta.env.VITE_BACKEND_URL ||
+  (import.meta.env.MODE === "production" ? "" : "http://localhost:3000");
 
 export async function api(path, options = {}) {
   const { method = "GET", body, headers } = options;
