@@ -23,14 +23,14 @@ export default function Login() {
     setLoading(true);
     try {
       const data = await loginRequest({ username, password });
-      
+
       // Store user data with username
       const userData = {
         userId: data.userId,
         role: data.role,
         username: username,
       };
-      
+
       login(userData);
       navigate("/profile");
     } catch (err) {

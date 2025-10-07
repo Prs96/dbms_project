@@ -25,7 +25,7 @@ export default function Profile() {
 
     async function load() {
       if (!authUser) return;
-      
+
       try {
         const data = await api(`/users/${authUser.userId}`);
         setUser(data);
@@ -79,7 +79,7 @@ export default function Profile() {
         setLoading(false);
       }
     }
-    
+
     if (authUser) {
       load();
     }
@@ -163,10 +163,13 @@ export default function Profile() {
   if (!user) return null;
 
   async function handleSave() {
+    if (!authUser) {
+      setError("Not authenticated");
+      return;
+    }
+    
     setSaving(true);
     try {
-      const { userId } = JSON.parse(localStorage.getItem("auth"));
-
       // Prepare data for sending
       const dataToSend = { ...formData };
 
@@ -191,7 +194,7 @@ export default function Profile() {
       // Handle CourseID - keep as text, convert empty to null
       if (dataToSend.CourseID === "") dataToSend.CourseID = null;
 
-      const updatedUser = await api(`/users/${userId}`, {
+      const updatedUser = await api(`/users/${authUser.userId}`, {
         method: "PUT",
         body: dataToSend,
       });
