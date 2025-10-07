@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { login as loginRequest } from "../api/auth";
+import { useAuth } from "../contexts/AuthContext";
 
 const API_BASE =
   import.meta.env.VITE_BACKEND_URL ||
@@ -14,6 +15,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -21,10 +23,15 @@ export default function Login() {
     setLoading(true);
     try {
       const data = await loginRequest({ username, password });
-      localStorage.setItem(
-        "auth",
-        JSON.stringify({ userId: data.userId, role: data.role })
-      );
+
+      // Store user data with username
+      const userData = {
+        userId: data.userId,
+        role: data.role,
+        username: username,
+      };
+
+      login(userData);
       navigate("/profile");
     } catch (err) {
       setError(err.message || "Login failed");

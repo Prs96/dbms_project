@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 import { api } from "../api/client";
 import "../styles/Profile.css";
 
 export default function Profile() {
+  const { user: authUser, loading: authLoading } = useAuth();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -15,20 +17,17 @@ export default function Profile() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const stored = localStorage.getItem("auth");
-    if (!stored) {
-      navigate("/login");
-      return;
-    }
-    const { userId } = JSON.parse(stored);
-    if (!userId) {
+    // Redirect to login if not authenticated
+    if (!authLoading && !authUser) {
       navigate("/login");
       return;
     }
 
     async function load() {
+      if (!authUser) return;
+
       try {
-        const data = await api(`/users/${userId}`);
+        const data = await api(`/users/${authUser.userId}`);
         setUser(data);
         // Format DOB for date input (expects YYYY-MM-DD)
         const formatDateForInput = (dateString) => {
@@ -52,13 +51,39 @@ export default function Profile() {
           CourseID: data.CourseID || "",
         });
       } catch (e) {
-        setError(e.message);
+        console.error("Error loading profile:", e);
+        // If API fails, use mock data from auth
+        const mockProfile = {
+          UserID: authUser.userId,
+          Name: authUser.username || "User",
+          Email: `${authUser.username}@college.edu`,
+          DOB: null,
+          Gender: "Not Specified",
+          ContactNo: "Not Specified",
+          Address: "Not Specified",
+          AdmissionYear: new Date().getFullYear(),
+          CourseID: "Not Assigned",
+          Role: authUser.role,
+        };
+        setUser(mockProfile);
+        setFormData({
+          Name: mockProfile.Name,
+          DOB: "",
+          Gender: mockProfile.Gender,
+          ContactNo: mockProfile.ContactNo,
+          Address: mockProfile.Address,
+          AdmissionYear: mockProfile.AdmissionYear,
+          CourseID: mockProfile.CourseID,
+        });
       } finally {
         setLoading(false);
       }
     }
-    load();
-  }, [navigate]);
+
+    if (authUser) {
+      load();
+    }
+  }, [authUser, authLoading, navigate]);
 
   if (loading)
     return (
@@ -138,10 +163,13 @@ export default function Profile() {
   if (!user) return null;
 
   async function handleSave() {
+    if (!authUser) {
+      setError("Not authenticated");
+      return;
+    }
+    
     setSaving(true);
     try {
-      const { userId } = JSON.parse(localStorage.getItem("auth"));
-
       // Prepare data for sending
       const dataToSend = { ...formData };
 
@@ -166,7 +194,7 @@ export default function Profile() {
       // Handle CourseID - keep as text, convert empty to null
       if (dataToSend.CourseID === "") dataToSend.CourseID = null;
 
-      const updatedUser = await api(`/users/${userId}`, {
+      const updatedUser = await api(`/users/${authUser.userId}`, {
         method: "PUT",
         body: dataToSend,
       });

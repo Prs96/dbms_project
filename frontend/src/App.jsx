@@ -12,11 +12,13 @@ import Login from "./components/Login";
 import Signup from "./components/Signup";
 import Profile from "./components/Profile";
 import { ThemeProvider, useTheme } from "./contexts/ThemeContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import ThemeSwitch from "./components/ThemeSwitch";
 import "./App.css";
 
 function Shell({ children }) {
   useTheme();
+  const { logout, user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -42,10 +44,9 @@ function Shell({ children }) {
 
   const onAuthRoute =
     location.pathname === "/login" || location.pathname === "/signup";
-  const hasAuth = Boolean(localStorage.getItem("auth"));
 
   function handleLogout() {
-    localStorage.removeItem("auth");
+    logout();
     navigate("/login", { replace: true });
   }
   return (
@@ -55,7 +56,7 @@ function Shell({ children }) {
           College PIS
         </Link>
         <div className="spacer" />
-        {!onAuthRoute && hasAuth && (
+        {!onAuthRoute && user && (
           <button className="logout-btn" onClick={handleLogout} title="Log out">
             Logout
           </button>
@@ -68,32 +69,42 @@ function Shell({ children }) {
 }
 
 function RequireAuth({ children }) {
-  const hasAuth = Boolean(localStorage.getItem("auth"));
-  if (!hasAuth) return <Navigate to="/login" replace />;
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
   return children;
 }
 
 export default function App() {
   return (
     <ThemeProvider>
-      <BrowserRouter>
-        <Shell>
-          <Routes>
-            <Route path="/" element={<Navigate to="/profile" replace />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route
-              path="/profile"
-              element={
-                <RequireAuth>
-                  <Profile />
-                </RequireAuth>
-              }
-            />
-            <Route path="*" element={<Navigate to="/login" replace />} />
-          </Routes>
-        </Shell>
-      </BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter>
+          <Shell>
+            <Routes>
+              <Route path="/" element={<Navigate to="/profile" replace />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route
+                path="/profile"
+                element={
+                  <RequireAuth>
+                    <Profile />
+                  </RequireAuth>
+                }
+              />
+              <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
+          </Shell>
+        </BrowserRouter>
+      </AuthProvider>
     </ThemeProvider>
   );
 }
