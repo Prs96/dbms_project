@@ -11,7 +11,7 @@ const User = sequelize.define("User", {
   Email: { type: DataTypes.STRING, unique: true },
   Address: { type: DataTypes.TEXT },
   AdmissionYear: { type: DataTypes.INTEGER },
-  CourseID: { type: DataTypes.INTEGER }
+  CourseID: { type: DataTypes.STRING }
 });
 
 module.exports = User;
